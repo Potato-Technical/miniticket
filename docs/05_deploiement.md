@@ -13,7 +13,7 @@ Deux fichiers, jamais confondus (`02_architecture.md` §10) :
 - `.env.example` — versionné, documente les variables attendues sans valeur réelle
 - `.env` — non versionné, contient les valeurs réelles de l'environnement local
 
-Variables attendues (nom exact à fixer à l'implémentation) : connexion MySQL (hôte, port, base, utilisateur, mot de passe), URI MongoDB (permettant de cibler l'instance conteneurisée en développement ou une instance distante selon l'environnement), secret de session.
+Variables attendues (nom exact à fixer à l'implémentation) : connexion MySQL (hôte, port, base, utilisateur, mot de passe), URI MongoDB (permettant de cibler l'instance conteneurisée en développement ou une instance distante selon l'environnement).
 
 ## Création de la base SQL
 
