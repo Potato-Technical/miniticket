@@ -10,11 +10,11 @@
 
 ## 2. Stack technique
 
-- **PHP 8, sans framework** — maîtrisé via EcoRide ; élimine le risque d'apprentissage, cohérent avec l'objectif de simplicité (§1).
+- **PHP 8.3, sans framework** — maîtrisé via EcoRide ; élimine le risque d'apprentissage, cohérent avec l'objectif de simplicité (§1).
 - **MySQL + PDO** — stockage relationnel des données métier (users, tickets, categories, comments) ; PDO pour requêtes préparées natives, sans ORM.
 - **MongoDB** — stockage de la collection `ticket_events` (append-only). Instance MongoDB conteneurisée en développement via Docker Compose. La connexion est configurée par variables d'environnement afin de permettre l'utilisation ultérieure d'une instance MongoDB distante sans modification du code applicatif.
 - **Docker / Docker Compose** — environnement de développement reproductible ; usage limité au développement, la cible de production reste ouverte (§10).
-- **Composer** — gestion des dépendances (notamment la bibliothèque PHP MongoDB, `mongodb/mongodb`) et autoload PSR-4 du code applicatif.
+- **Composer** — gestion des dépendances (`mongodb/mongodb` pour l'accès MongoDB, `vlucas/phpdotenv` pour le chargement des variables d'environnement) et autoload PSR-4 du code applicatif.
 - **Git / GitHub** — versionnement et hébergement du code source.
 
 ## 3. Architecture générale
