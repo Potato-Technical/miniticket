@@ -1,0 +1,16 @@
+{
+    "name": "potato-technical/miniticket",
+    "description": "MiniTicket - application de gestion de tickets helpdesk",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "mongodb/mongodb": "^2.4",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}
