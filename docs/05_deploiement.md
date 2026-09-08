@@ -2,7 +2,7 @@
 
 ## Prérequis
 
-- PHP 8
+- PHP 8.3
 - Composer
 - Docker et Docker Compose (environnement de développement : app, MySQL, MongoDB)
 - Git
