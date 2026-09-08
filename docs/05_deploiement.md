@@ -19,11 +19,32 @@ Variables attendues (nom exact à fixer à l'implémentation) : connexion MySQL 
 
 Exécution de `database/miniticket_schema.sql` sur l'instance MySQL cible (conteneur en développement, ou instance de production une fois la cible arrêtée). Le script inclut la structure des tables et le seed des 6 catégories fixes (`01_cadrage.md` §5).
 
-**État actuel : script rédigé à partir du MLD (`01_cadrage.md` §6.1), non encore exécuté.**
+**État actuel : script exécuté avec succès sur l'instance MySQL de développement. Les tables et les 6 catégories fixes ont été vérifiées.**
 
 ## Provisioning des comptes TECHNICIAN et ADMIN
 
 L'inscription publique (US1) ne crée que des comptes USER. Pour le MVP, les comptes TECHNICIAN et ADMIN sont créés manuellement en base (insertion SQL directe ou requête ponctuelle), hors de tout mécanisme applicatif — aucune interface de provisioning n'est prévue dans le chemin critique.
+
+**Procédure reproductible** (à exécuter après `docker compose up -d` et l'exécution du schéma) — aucune valeur réelle ci-dessous, à remplacer localement :
+
+1. Générer le hash du mot de passe choisi, pour chaque compte :
+```
+docker compose exec web php -r "echo password_hash('<mot_de_passe_dev>', PASSWORD_DEFAULT) . PHP_EOL;"
+```
+
+2. Se connecter à MySQL dans le conteneur :
+```
+docker compose exec db mysql -u<DB_USER> -p<DB_PASSWORD> <DB_NAME>
+```
+
+3. Insérer le compte avec le hash généré à l'étape 1 :
+```sql
+INSERT INTO users (pseudo, email, password_hash, role, created_at) VALUES
+('<pseudo>', '<email>', '<hash_généré>', 'TECHNICIAN', NOW());
+```
+Répéter pour `ADMIN`.
+
+Cette procédure n'est pas versionnée sous forme de script SQL exécutable (cohérent avec "hors de tout mécanisme applicatif" ci-dessus) — seule la méthode est documentée, pas les identifiants ni les hashs réels, le repository étant public.
 
 ## Configuration MongoDB
 
