@@ -4,21 +4,32 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\View;
+
 class TicketController
 {
+    /**
+     * Affiche les tickets créés par l'utilisateur connecté.
+     */
     public function myTickets(): void
     {
-        echo 'TicketController::myTickets';
+        View::render('tickets/my');
     }
 
+    /**
+     * Affiche la vue globale des tickets (TECHNICIAN/ADMIN).
+     */
     public function allTickets(): void
     {
-        echo 'TicketController::allTickets';
+        View::render('tickets/all');
     }
 
+    /**
+     * Affiche le formulaire de création de ticket.
+     */
     public function showCreate(): void
     {
-        echo 'TicketController::showCreate';
+        View::render('tickets/create');
     }
 
     public function create(): void
@@ -26,9 +37,14 @@ class TicketController
         echo 'TicketController::create';
     }
 
+    /**
+     * Affiche le détail d'un ticket.
+     *
+     * @param string $id Identifiant du ticket, issu du paramètre dynamique de route.
+     */
     public function show(string $id): void
     {
-        echo 'TicketController::show id=' . $id;
+        View::render('tickets/show', ['id' => $id]);
     }
 
     public function assign(string $id): void

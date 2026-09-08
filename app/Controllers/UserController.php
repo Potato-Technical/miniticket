@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\View;
+
 class UserController
 {
+    /**
+     * Affiche le formulaire d'inscription.
+     */
     public function showRegister(): void
     {
-        echo 'UserController::showRegister';
+        View::render('user/register');
     }
 
     public function register(): void
@@ -16,9 +21,12 @@ class UserController
         echo 'UserController::register';
     }
 
+    /**
+     * Affiche le formulaire de connexion.
+     */
     public function showLogin(): void
     {
-        echo 'UserController::showLogin';
+        View::render('user/login');
     }
 
     public function login(): void
