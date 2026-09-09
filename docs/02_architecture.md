@@ -52,6 +52,7 @@ miniticket/
 │   │   ├── Router.php
 │   │   ├── Database.php      # connexion PDO MySQL
 │   │   ├── MongoConnection.php
+│   │   ├── Session.php        # configuration/démarrage des sessions PHP, régénération et destruction techniques
 │   │   └── Guard.php          # contrôle d'autorisation centralisé
 │   └── Views/
 ├── config/
@@ -98,7 +99,10 @@ Les documents de la collection `ticket_events` (MongoDB) ne disposent pas de Mod
 
 ### 5.5 Core
 
-Core regroupe les composants techniques transversaux, communs à toute l'application : Router (résolution des routes vers un Controller), Database (connexion PDO à MySQL), MongoConnection (connexion à la bibliothèque PHP MongoDB) et Guard.
+Core regroupe les composants techniques transversaux, communs à toute l'application : Router (résolution des routes vers un Controller), Database (connexion PDO à MySQL), MongoConnection (connexion à la bibliothèque PHP MongoDB), Session et Guard.
+
+Session configure et démarre la session PHP (paramètres sécurisés du cookie : `httponly`, `secure` selon l'environnement, `samesite`), et fournit les primitives techniques de régénération et de destruction de session. Elle ne contient aucune décision d'authentification ou d'autorisation — ce rôle reste exclusivement celui du Guard.
+ 
 
 Rôle et portée du Guard → §7.
 
