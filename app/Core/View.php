@@ -22,8 +22,14 @@ class View
         $viewFile = __DIR__ . '/../Views/' . $view . '.php';
 
         ob_start();
-        require $viewFile;
-        $content = ob_get_clean();
+
+        try {
+            require $viewFile;
+            $content = ob_get_clean();
+        } catch (\Throwable $e) {
+            ob_end_clean();
+            throw $e;
+        }
 
         require __DIR__ . '/../Views/layout.php';
     }
