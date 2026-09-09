@@ -57,9 +57,12 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_APP_USER: ${MONGO_APP_USER}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD}
 
     volumes:
       - mongo_data:/data/db
+      - ./docker/mongo-init/init-app-user.sh:/docker-entrypoint-initdb.d/init-app-user.sh:ro
 
     healthcheck:
       test:
