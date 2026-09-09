@@ -53,7 +53,9 @@ miniticket/
 │   │   ├── Database.php      # connexion PDO MySQL
 │   │   ├── MongoConnection.php
 │   │   ├── Session.php        # configuration/démarrage des sessions PHP, régénération et destruction techniques
-│   │   └── Guard.php          # contrôle d'autorisation centralisé
+│   │   ├── Csrf.php            # génération et vérification d'un jeton CSRF unique par session
+│   │   └── Guard.php          # contrôle d'autorisation 
+│   │   └── helpers.php       # fonctions globales : e() et csrf_field()
 │   └── Views/
 ├── config/
 │   └── config.php
@@ -99,10 +101,11 @@ Les documents de la collection `ticket_events` (MongoDB) ne disposent pas de Mod
 
 ### 5.5 Core
 
-Core regroupe les composants techniques transversaux, communs à toute l'application : Router (résolution des routes vers un Controller), Database (connexion PDO à MySQL), MongoConnection (connexion à la bibliothèque PHP MongoDB), Session et Guard.
+Core regroupe les composants techniques transversaux, communs à toute l'application : Router (résolution des routes vers un Controller), Database (connexion PDO à MySQL), MongoConnection (connexion à la bibliothèque PHP MongoDB), Session, Csrf et Guard.
 
 Session configure et démarre la session PHP (paramètres sécurisés du cookie : `httponly`, `secure` selon l'environnement, `samesite`), et fournit les primitives techniques de régénération et de destruction de session. Elle ne contient aucune décision d'authentification ou d'autorisation — ce rôle reste exclusivement celui du Guard.
  
+Csrf génère et vérifie un jeton CSRF unique par session, comparé en temps constant (`hash_equals`). Comme Session, c'est un mécanisme technique pur : il ne décide d'aucune autorisation, il fournit seulement le moyen de protéger un formulaire contre une soumission forgée depuis un autre site.
 
 Rôle et portée du Guard → §7.
 
