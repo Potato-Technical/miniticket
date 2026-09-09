@@ -7,6 +7,7 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
+(new App\Core\Session())->start();
 $router = new App\Core\Router();
 
 require __DIR__ . '/../routes.php';
