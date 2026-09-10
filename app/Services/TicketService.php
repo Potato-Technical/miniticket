@@ -179,6 +179,15 @@ class TicketService
     }
 
     /**
+     * @return array<int, array<string, mixed>> Historique des événements du ticket (US9),
+     *   ordre chronologique croissant déjà assuré par TicketEventRepository::findByTicketId().
+     */
+    public function history(int $ticketId): array
+    {
+        return $this->events->findByTicketId($ticketId);
+    }
+
+    /**
      * Calcul serveur de la priorité (US8) — jamais saisi par l'utilisateur.
      * Appelée uniquement après validation stricte de $impact et $urgence.
      */

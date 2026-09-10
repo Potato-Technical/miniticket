@@ -40,6 +40,30 @@
 <h2>Description</h2>
 <p><?= nl2br(e($ticket['description'])) ?></p>
 
+<h2>Description</h2>
+<p><?= nl2br(e($ticket['description'])) ?></p>
+
+<h2>Historique</h2>
+
+<?php if ($history === []): ?>
+    <p>Aucun événement enregistré.</p>
+<?php else: ?>
+    <ul class="list-unstyled">
+        <?php foreach ($history as $event): ?>
+            <li class="mb-2">
+                <strong><?= e($event['horodatage_formate']) ?></strong>
+                — <?= e($event['type_evenement']) ?>
+                (<?= e($event['acteur']['role']) ?>)
+                <?php if (isset($event['donnees']['ancien_statut'], $event['donnees']['nouveau_statut'])): ?>
+                    : <?= e($event['donnees']['ancien_statut']) ?> → <?= e($event['donnees']['nouveau_statut']) ?>
+                <?php elseif ($event['type_evenement'] === 'CREATION' && isset($event['donnees']['statut'])): ?>
+                    : statut initial <?= e($event['donnees']['statut']) ?>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+<?php endif; ?>
+
 <h2>Commentaires</h2>
 
 <?php if ($comments === []): ?>

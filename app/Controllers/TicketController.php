@@ -204,6 +204,18 @@ class TicketController
             $categoryLabels[(int) $category['id']] = $category['libelle'];
         }
 
+        $history = [];
+
+        foreach ($ticketService->history((int) $ticket['id']) as $event) {
+            $horodatage = $event['horodatage'] ?? null;
+
+            $event['horodatage_formate'] = $horodatage instanceof \MongoDB\BSON\UTCDateTime
+                ? $horodatage->toDateTime()->format('d/m/Y H:i:s')
+                : '';
+
+            $history[] = $event;
+        }
+
         View::render('tickets/show', [
             'ticket' => $ticket,
             'categoryLabel' => $categoryLabels[(int) $ticket['category_id']] ?? 'Catégorie inconnue',
@@ -211,9 +223,10 @@ class TicketController
             'commentErrors' => $commentErrors,
             'oldComment' => $oldComment,
             'currentRole' => $currentRole,
+            'history' => $history,
         ]);
     }
-
+    
     public function assign(string $id): void
     {
         $guard = new Guard();
