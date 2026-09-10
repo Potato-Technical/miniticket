@@ -54,9 +54,13 @@ miniticket/
 │   │   ├── MongoConnection.php
 │   │   ├── Session.php        # configuration/démarrage des sessions PHP, régénération et destruction techniques
 │   │   ├── Csrf.php            # génération et vérification d'un jeton CSRF unique par session
+│   │   ├── ErrorHandler.php    # capture centralisée des erreurs/exceptions, journalisation, affichage selon APP_ENV
+
 │   │   └── Guard.php          # contrôle d'autorisation 
 │   │   └── helpers.php       # fonctions globales : e() et csrf_field()
 │   └── Views/
+│       └── errors/
+│           └── 500.php         # page générique affichée en production
 ├── config/
 │   └── config.php
 ├── database/
