@@ -132,7 +132,7 @@ class TicketService
     public function listCategories(): array
     {
         return $this->categories->findAll();
-    }    
+    }
 
     /**
      * Calcul serveur de la priorité (US8) — jamais saisi par l'utilisateur.
