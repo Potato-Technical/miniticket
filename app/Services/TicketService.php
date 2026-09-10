@@ -119,7 +119,7 @@ class TicketService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>> Tickets créés par cet utilisateur (US4).
      */
     public function listMine(int $userId): array
     {
@@ -160,7 +160,7 @@ class TicketService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>> Catégories disponibles, pour affichage.
      */
     public function listCategories(): array
     {
@@ -174,5 +174,42 @@ class TicketService
     private function calculatePriority(string $impact, string $urgence): string
     {
         return self::PRIORITY_MATRIX[$impact][$urgence];
+    }
+
+    /**
+     * Prise en charge d'un ticket par un TECHNICIAN (US7) : assignation + passage
+     * NOUVEAU → EN_COURS en une seule opération atomique. Retourne false si le ticket
+     * n'était pas NOUVEAU (précontrôle) ou si l'UPDATE atomique n'a touché aucune ligne
+     * (changement concurrent) — dans les deux cas, le Controller traduit en 409.
+     * Le rôle TECHNICIAN est déjà imposé par Guard::requireRole() côté Controller.
+     *
+     * @param array<string, mixed> $ticket
+     */
+    public function assign(array $ticket, int $technicianId): bool
+    {
+        if ($ticket['statut'] !== 'NOUVEAU') {
+            return false;
+        }
+
+        if (!$this->tickets->assignAndStart((int) $ticket['id'], $technicianId)) {
+            return false;
+        }
+
+        $this->events->logEvent([
+            'ticket_id' => (int) $ticket['id'],
+            'type_evenement' => 'PRISE_EN_CHARGE',
+            'acteur' => [
+                'user_id' => $technicianId,
+                'role' => 'TECHNICIAN',
+            ],
+            'horodatage' => new UTCDateTime(),
+            'donnees' => [
+                'ancien_statut' => 'NOUVEAU',
+                'nouveau_statut' => 'EN_COURS',
+                'technician_id' => $technicianId,
+            ],
+        ]);
+
+        return true;
     }
 }

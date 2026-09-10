@@ -107,4 +107,22 @@ class TicketRepository
 
         $stmt->execute([$status, $ticketId]);
     }
+
+    /**
+     * Prise en charge atomique (US7) : assigne le technicien et passe le ticket à
+     * EN_COURS en une seule requête, protégée par WHERE statut = 'NOUVEAU' contre
+     * une prise en charge concurrente. Retourne false si aucune ligne n'a été affectée
+     * (ticket déjà assigné/statut différent entre-temps) — la décision (409, etc.)
+     * reste au Service/Controller appelant.
+     */
+    public function assignAndStart(int $ticketId, int $technicianId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE tickets SET technician_id = ?, statut = 'EN_COURS', updated_at = NOW()
+             WHERE id = ? AND statut = 'NOUVEAU'"
+        );
+        $stmt->execute([$technicianId, $ticketId]);
+
+        return $stmt->rowCount() === 1;
+    }
 }

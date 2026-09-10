@@ -30,7 +30,7 @@ class TicketController
     }
 
     /**
-     * Affiche les tickets créés par l'utilisateur connecté.
+     * Affiche les tickets créés par l'utilisateur connecté (US4).
      */
     public function myTickets(): void
     {
@@ -57,7 +57,8 @@ class TicketController
      */
     public function allTickets(): void
     {
-        (new Guard())->requireRole(['TECHNICIAN', 'ADMIN']);
+        $guard = new Guard();
+        $guard->requireRole(['TECHNICIAN', 'ADMIN']);
 
         $service = $this->ticketService();
 
@@ -71,6 +72,7 @@ class TicketController
         View::render('tickets/all', [
             'tickets' => $tickets,
             'categoryLabels' => $categoryLabels,
+            'currentRole' => $guard->currentRole(),
         ]);
     }
 
@@ -212,7 +214,39 @@ class TicketController
 
     public function assign(string $id): void
     {
-        echo 'TicketController::assign id=' . $id;
+        $guard = new Guard();
+        $guard->requireRole(['TECHNICIAN']);
+
+        if (!ctype_digit($id) || (int) $id === 0) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        if (!(new Csrf())->verifyToken($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            echo '403 Forbidden';
+            return;
+        }
+
+        $service = $this->ticketService();
+        $ticket = $service->findById((int) $id);
+
+        if ($ticket === null) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        $assigned = $service->assign($ticket, (int) $guard->currentUserId());
+
+        if (!$assigned) {
+            http_response_code(409);
+            echo '409 Conflict';
+            return;
+        }
+
+        header('Location: /tickets/' . $id);
     }
 
     public function updateStatus(string $id): void
