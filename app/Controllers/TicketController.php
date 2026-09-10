@@ -10,8 +10,10 @@ use App\Core\Guard;
 use App\Core\MongoConnection;
 use App\Core\View;
 use App\Repositories\CategoryRepository;
+use App\Repositories\CommentRepository;
 use App\Repositories\TicketEventRepository;
 use App\Repositories\TicketRepository;
+use App\Services\CommentService;
 use App\Services\TicketService;
 
 class TicketController
@@ -143,6 +145,11 @@ class TicketController
         header('Location: /tickets/' . $result['ticket_id']);
     }
 
+    private function commentService(): CommentService
+    {
+        return new CommentService(new CommentRepository((new Database())->getConnection()));
+    }
+
     /**
      * Affiche le détail d'un ticket, sous contrôle de propriété (US6).
      *
@@ -174,14 +181,32 @@ class TicketController
             return;
         }
 
+        $this->renderShow($ticket);
+    }
+
+    /**
+     * Rend le détail d'un ticket (catégorie + commentaires), avec une éventuelle erreur de
+     * formulaire de commentaire. Réutilisé par CommentController::store() pour éviter de
+     * dupliquer la récupération des données d'affichage (étape 22).
+     *
+     * @param array<string, mixed> $ticket
+     * @param array<string, string> $commentErrors
+     */
+    public function renderShow(array $ticket, array $commentErrors = [], string $oldComment = ''): void
+    {
+        $ticketService = $this->ticketService();
+
         $categoryLabels = [];
-        foreach ($service->listCategories() as $category) {
+        foreach ($ticketService->listCategories() as $category) {
             $categoryLabels[(int) $category['id']] = $category['libelle'];
         }
 
         View::render('tickets/show', [
             'ticket' => $ticket,
             'categoryLabel' => $categoryLabels[(int) $ticket['category_id']] ?? 'Catégorie inconnue',
+            'comments' => $this->commentService()->listByTicket((int) $ticket['id']),
+            'commentErrors' => $commentErrors,
+            'oldComment' => $oldComment,
         ]);
     }
 
