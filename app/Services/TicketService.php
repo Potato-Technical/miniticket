@@ -119,6 +119,22 @@ class TicketService
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listMine(int $userId): array
+    {
+        return $this->tickets->findByUserId($userId);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listCategories(): array
+    {
+        return $this->categories->findAll();
+    }    
+
+    /**
      * Calcul serveur de la priorité (US8) — jamais saisi par l'utilisateur.
      * Appelée uniquement après validation stricte de $impact et $urgence.
      */

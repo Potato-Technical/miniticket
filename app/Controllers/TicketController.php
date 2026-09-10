@@ -32,7 +32,22 @@ class TicketController
      */
     public function myTickets(): void
     {
-        View::render('tickets/my');
+        $guard = new Guard();
+        $guard->requireAuth();
+
+        $service = $this->ticketService();
+
+        $tickets = $service->listMine((int) $guard->currentUserId());
+
+        $categoryLabels = [];
+        foreach ($service->listCategories() as $category) {
+            $categoryLabels[(int) $category['id']] = $category['libelle'];
+        }
+
+        View::render('tickets/my', [
+            'tickets' => $tickets,
+            'categoryLabels' => $categoryLabels,
+        ]);
     }
 
     /**
