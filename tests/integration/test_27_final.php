@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/vendor/autoload.php';
+$root = dirname(__DIR__, 2);
+
+require $root . '/vendor/autoload.php';
 
 use App\Core\Database;
 use App\Core\MongoConnection;
@@ -15,7 +17,7 @@ use App\Services\CommentService;
 use App\Services\TicketService;
 use App\Services\UserService;
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv = Dotenv\Dotenv::createImmutable($root);
 $dotenv->load();
 
 $pdo = (new Database())->getConnection();

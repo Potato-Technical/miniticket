@@ -2,7 +2,7 @@
 
 ## 1. Objectif des tests
 
-Valider, sur l'application réellement déployée (environnement Docker Compose), que le P0 fonctionnel répond aux exigences de sécurité et de règles métier fixées en `01_cadrage.md`, `02_architecture.md` et `03_securite.md`. Deux niveaux : un scénario d'intégration automatisé au niveau Service (`test_27_final.php`), et une passe manuelle HTTP consolidée couvrant RBAC, CSRF, tampering, XSS, robustesse du routage, logs et secrets.
+Valider, sur l'application réellement déployée (environnement Docker Compose), que le P0 fonctionnel répond aux exigences de sécurité et de règles métier fixées en `01_cadrage.md`, `02_architecture.md` et `03_securite.md`. Deux niveaux : un scénario d'intégration automatisé au niveau Service (`tests/integration/test_27_final.php`), et une passe manuelle HTTP consolidée couvrant RBAC, CSRF, tampering, XSS, robustesse du routage, logs et secrets.
 
 ## 2. Environnement de test
 
@@ -24,7 +24,7 @@ Scénario CLI unique, exécuté au niveau Service (sans passer par le serveur HT
 ### 3.2 Résultats
 
 - Précondition : base MySQL et MongoDB vides de données de test préalables au run, schéma exécuté, 6 catégories présentes.
-- Action : `docker compose exec web php test_27_final.php`.
+- Action : `docker compose exec web php tests/integration/test_27_final.php`.
 - Résultat attendu : 100 % des assertions passent, aucune régression sur le cycle de vie complet.
 - Résultat obtenu : 26/26 tests PASS. Ticket créé id 42.
 - Statut : PASS
