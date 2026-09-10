@@ -127,6 +127,14 @@ class TicketService
     }
 
     /**
+     * @return array<int, array<string, mixed>> Tous les tickets, vue globale TECHNICIAN/ADMIN (US5).
+     */
+    public function listAll(): array
+    {
+        return $this->tickets->findAll();
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function listCategories(): array

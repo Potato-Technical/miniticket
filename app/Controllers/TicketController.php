@@ -51,11 +51,25 @@ class TicketController
     }
 
     /**
-     * Affiche la vue globale des tickets (TECHNICIAN/ADMIN).
+     * Affiche la vue globale des tickets (US5, TECHNICIAN/ADMIN).
      */
     public function allTickets(): void
     {
-        View::render('tickets/all');
+        (new Guard())->requireRole(['TECHNICIAN', 'ADMIN']);
+
+        $service = $this->ticketService();
+
+        $tickets = $service->listAll();
+
+        $categoryLabels = [];
+        foreach ($service->listCategories() as $category) {
+            $categoryLabels[(int) $category['id']] = $category['libelle'];
+        }
+
+        View::render('tickets/all', [
+            'tickets' => $tickets,
+            'categoryLabels' => $categoryLabels,
+        ]);
     }
 
     /**
