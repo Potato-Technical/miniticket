@@ -40,9 +40,6 @@
 <h2>Description</h2>
 <p><?= nl2br(e($ticket['description'])) ?></p>
 
-<h2>Description</h2>
-<p><?= nl2br(e($ticket['description'])) ?></p>
-
 <h2>Historique</h2>
 
 <?php if ($history === []): ?>
