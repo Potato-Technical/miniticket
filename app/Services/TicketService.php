@@ -135,6 +135,31 @@ class TicketService
     }
 
     /**
+     * @return array<string, mixed>|null Ticket trouvé, ou null si absent (US6).
+     */
+    public function findById(int $ticketId): ?array
+    {
+        return $this->tickets->findById($ticketId);
+    }
+
+    /**
+     * Règle de propriété contextuelle (US6, 02_architecture.md §7) : le créateur voit
+     * son propre ticket ; TECHNICIAN et ADMIN disposent d'un accès en lecture globale (US5).
+     * Ne tranche que l'autorisation — l'existence du ticket est déjà vérifiée par l'appelant
+     * via findById(), pour garder la distinction 404 (absent) / 403 (refusé) côté Controller.
+     *
+     * @param array<string, mixed> $ticket
+     */
+    public function canView(array $ticket, int $userId, string $role): bool
+    {
+        if (in_array($role, ['TECHNICIAN', 'ADMIN'], true)) {
+            return true;
+        }
+
+        return (int) $ticket['user_id'] === $userId;
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function listCategories(): array

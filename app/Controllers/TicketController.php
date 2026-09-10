@@ -144,13 +144,45 @@ class TicketController
     }
 
     /**
-     * Affiche le détail d'un ticket.
+     * Affiche le détail d'un ticket, sous contrôle de propriété (US6).
      *
      * @param string $id Identifiant du ticket, issu du paramètre dynamique de route.
      */
     public function show(string $id): void
     {
-        View::render('tickets/show', ['id' => $id]);
+        $guard = new Guard();
+        $guard->requireAuth();
+
+        if (!ctype_digit($id) || (int) $id === 0) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        $service = $this->ticketService();
+        $ticket = $service->findById((int) $id);
+
+        if ($ticket === null) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        if (!$service->canView($ticket, (int) $guard->currentUserId(), (string) $guard->currentRole())) {
+            http_response_code(403);
+            echo '403 Forbidden';
+            return;
+        }
+
+        $categoryLabels = [];
+        foreach ($service->listCategories() as $category) {
+            $categoryLabels[(int) $category['id']] = $category['libelle'];
+        }
+
+        View::render('tickets/show', [
+            'ticket' => $ticket,
+            'categoryLabel' => $categoryLabels[(int) $ticket['category_id']] ?? 'Catégorie inconnue',
+        ]);
     }
 
     public function assign(string $id): void
