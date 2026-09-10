@@ -75,7 +75,7 @@ class CommentController
         $result = $this->commentService()->add((int) $id, (int) $guard->currentUserId(), $contenu);
 
         if ($result['errors'] !== []) {
-            (new TicketController())->renderShow($ticket, $result['errors'], $contenu);
+            (new TicketController())->renderShow($ticket, $result['errors'], $contenu, (string) $guard->currentRole());
             return;
         }
 

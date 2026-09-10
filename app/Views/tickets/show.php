@@ -23,6 +23,20 @@
     <dd class="col-sm-9"><?= e($ticket['created_at']) ?></dd>
 </dl>
 
+<?php if ($currentRole === 'TECHNICIAN' && $ticket['statut'] === 'EN_COURS'): ?>
+    <form method="post" action="/tickets/<?= e((string) $ticket['id']) ?>/status">
+        <?= csrf_field() ?>
+        <input type="hidden" name="statut" value="RESOLU">
+        <button type="submit" class="btn btn-sm btn-outline-success">Marquer résolu</button>
+    </form>
+<?php elseif ($currentRole === 'TECHNICIAN' && $ticket['statut'] === 'RESOLU'): ?>
+    <form method="post" action="/tickets/<?= e((string) $ticket['id']) ?>/status">
+        <?= csrf_field() ?>
+        <input type="hidden" name="statut" value="FERME">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Fermer</button>
+    </form>
+<?php endif; ?>
+
 <h2>Description</h2>
 <p><?= nl2br(e($ticket['description'])) ?></p>
 

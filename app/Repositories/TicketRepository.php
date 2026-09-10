@@ -125,4 +125,19 @@ class TicketRepository
 
         return $stmt->rowCount() === 1;
     }
+
+    /**
+     * Transition de statut atomique (US7), protégée par WHERE statut = $fromStatus contre
+     * une transition concurrente. Retourne false si aucune ligne n'a été affectée (statut
+     * déjà différent entre-temps) — la décision (409, etc.) reste au Service/Controller appelant.
+     */
+    public function transitionStatus(int $ticketId, string $fromStatus, string $toStatus): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE tickets SET statut = ?, updated_at = NOW() WHERE id = ? AND statut = ?'
+        );
+        $stmt->execute([$toStatus, $ticketId, $fromStatus]);
+
+        return $stmt->rowCount() === 1;
+    }
 }

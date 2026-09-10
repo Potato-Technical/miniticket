@@ -27,6 +27,17 @@ class TicketService
         'FAIBLE' => ['ELEVEE' => 'P3', 'MOYENNE' => 'P4', 'FAIBLE' => 'P4'],
     ];
 
+    /**
+     * Transitions de statut légales (US7, 02_architecture.md §8.3) : clé = statut actuel,
+     * valeur = seul statut cible autorisé depuis cet état. NOUVEAU et FERME n'y figurent pas
+     * volontairement — aucune transition via cette voie (NOUVEAU passe par assign(), FERME
+     * n'accepte plus rien hors réouverture, US12 bonus, hors P0).
+     */
+    private const STATUS_TRANSITIONS = [
+        'EN_COURS' => 'RESOLU',
+        'RESOLU' => 'FERME',
+    ];
+
     public function __construct(
         private readonly TicketRepository $tickets,
         private readonly CategoryRepository $categories,
@@ -207,6 +218,44 @@ class TicketService
                 'ancien_statut' => 'NOUVEAU',
                 'nouveau_statut' => 'EN_COURS',
                 'technician_id' => $technicianId,
+            ],
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Machine à états stricte (US7, 02_architecture.md §8.3) : EN_COURS -> RESOLU -> FERME,
+     * une seule transition à la fois. Toute autre paire (y compris depuis NOUVEAU/FERME, ou
+     * un $targetStatus qui ne correspond pas exactement à la transition légale suivante)
+     * est refusée avant tout appel SQL. Le rôle TECHNICIAN est déjà imposé par
+     * Guard::requireRole() côté Controller.
+     *
+     * @param array<string, mixed> $ticket
+     */
+    public function transitionTo(array $ticket, string $targetStatus, int $technicianId): bool
+    {
+        $currentStatus = $ticket['statut'];
+
+        if (!isset(self::STATUS_TRANSITIONS[$currentStatus]) || self::STATUS_TRANSITIONS[$currentStatus] !== $targetStatus) {
+            return false;
+        }
+
+        if (!$this->tickets->transitionStatus((int) $ticket['id'], $currentStatus, $targetStatus)) {
+            return false;
+        }
+
+        $this->events->logEvent([
+            'ticket_id' => (int) $ticket['id'],
+            'type_evenement' => 'CHANGEMENT_STATUT',
+            'acteur' => [
+                'user_id' => $technicianId,
+                'role' => 'TECHNICIAN',
+            ],
+            'horodatage' => new UTCDateTime(),
+            'donnees' => [
+                'ancien_statut' => $currentStatus,
+                'nouveau_statut' => $targetStatus,
             ],
         ]);
 

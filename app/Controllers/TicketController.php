@@ -183,18 +183,19 @@ class TicketController
             return;
         }
 
-        $this->renderShow($ticket);
+        $this->renderShow($ticket, [], '', (string) $guard->currentRole());
     }
 
     /**
      * Rend le détail d'un ticket (catégorie + commentaires), avec une éventuelle erreur de
      * formulaire de commentaire. Réutilisé par CommentController::store() pour éviter de
-     * dupliquer la récupération des données d'affichage (étape 22).
+     * dupliquer la récupération des données d'affichage (étape 22). $currentRole conditionne
+     * l'affichage des boutons de transition de statut (étape 24, TECHNICIAN uniquement).
      *
      * @param array<string, mixed> $ticket
      * @param array<string, string> $commentErrors
      */
-    public function renderShow(array $ticket, array $commentErrors = [], string $oldComment = ''): void
+    public function renderShow(array $ticket, array $commentErrors = [], string $oldComment = '', string $currentRole = ''): void
     {
         $ticketService = $this->ticketService();
 
@@ -209,6 +210,7 @@ class TicketController
             'comments' => $this->commentService()->listByTicket((int) $ticket['id']),
             'commentErrors' => $commentErrors,
             'oldComment' => $oldComment,
+            'currentRole' => $currentRole,
         ]);
     }
 
@@ -251,6 +253,40 @@ class TicketController
 
     public function updateStatus(string $id): void
     {
-        echo 'TicketController::updateStatus id=' . $id;
+        $guard = new Guard();
+        $guard->requireRole(['TECHNICIAN']);
+
+        if (!ctype_digit($id) || (int) $id === 0) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        if (!(new Csrf())->verifyToken($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            echo '403 Forbidden';
+            return;
+        }
+
+        $targetStatus = is_string($_POST['statut'] ?? null) ? $_POST['statut'] : '';
+
+        $service = $this->ticketService();
+        $ticket = $service->findById((int) $id);
+
+        if ($ticket === null) {
+            http_response_code(404);
+            echo '404 Not Found';
+            return;
+        }
+
+        $transitioned = $service->transitionTo($ticket, $targetStatus, (int) $guard->currentUserId());
+
+        if (!$transitioned) {
+            http_response_code(409);
+            echo '409 Conflict';
+            return;
+        }
+
+        header('Location: /tickets/' . $id);
     }
 }
