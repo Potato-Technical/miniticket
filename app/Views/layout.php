@@ -23,7 +23,7 @@ if ($navAuthenticated) {
     <link href="/assets/css/app.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand fw-bold" href="<?= e($navLogoHref) ?>">MiniTicket</a>
 
