@@ -13,6 +13,7 @@
 - **PHP 8.3, sans framework** — maîtrisé via EcoRide ; élimine le risque d'apprentissage, cohérent avec l'objectif de simplicité (§1).
 - **MySQL + PDO** — stockage relationnel des données métier (users, tickets, categories, comments) ; PDO pour requêtes préparées natives, sans ORM.
 - **MongoDB** — stockage de la collection `ticket_events` (append-only). Instance MongoDB conteneurisée en développement via Docker Compose. La connexion est configurée par variables d'environnement afin de permettre l'utilisation ultérieure d'une instance MongoDB distante sans modification du code applicatif.
+- **Bootstrap 5.3.3** — mise en forme des vues existantes (chargé en CDN ou asset statique, aucune compilation requise), complétée par un fichier CSS d'appoint (`public/assets/css/app.css`). N'introduit aucune logique côté client ; ne relève pas d'une compétence front-end évaluée (`01_cadrage.md` §2).
 - **Docker / Docker Compose** — environnement de développement reproductible ; usage limité au développement, la cible de production reste ouverte (§10).
 - **Composer** — gestion des dépendances (`mongodb/mongodb` pour l'accès MongoDB, `vlucas/phpdotenv` pour le chargement des variables d'environnement) et autoload PSR-4 du code applicatif.
 - **Git / GitHub** — versionnement et hébergement du code source.
@@ -34,11 +35,13 @@ miniticket/
 │   ├── Controllers/
 │   │   ├── TicketController.php
 │   │   ├── UserController.php
-│   │   └── CommentController.php
+│   │   ├── CommentController.php
+│   │   └── AdminController.php
 │   ├── Services/
 │   │   ├── TicketService.php
 │   │   ├── UserService.php
-│   │   └── CommentService.php
+│   │   ├── CommentService.php
+│   │   └── AdminDashboardService.php
 │   ├── Repositories/
 │   │   ├── TicketRepository.php
 │   │   ├── UserRepository.php
@@ -59,12 +62,15 @@ miniticket/
 │   │   └── Guard.php          # contrôle d'autorisation 
 │   │   └── helpers.php       # fonctions globales : e() et csrf_field()
 │   └── Views/
+│       ├── admin/
+│       │   └── dashboard.php
 │       └── errors/
 │           └── 500.php         # page générique affichée en production
 ├── config/
 │   └── config.php
 ├── database/
-│   └── miniticket_schema.sql
+│   ├── miniticket_schema.sql
+│   └── seed_demo.php           # seed de démonstration, distinct du provisioning décrit en §10 et 05_deploiement.md
 ├── public/
 │   └── index.php              # point d'entrée
 ├── routes.php
@@ -123,13 +129,13 @@ L'accès à MySQL passe exclusivement par les Repositories (§5.3), via PDO. Cha
 
 L'accès à MongoDB passe exclusivement par `TicketEventRepository` (§5.3), via la bibliothèque PHP MongoDB. Un document est écrit dans `ticket_events` après réussite de la persistance SQL correspondante, jamais avant : MySQL constitue la source de vérité sur l'état du ticket, tandis que MongoDB conserve son historique événementiel. Le document référence le ticket via `ticket_id`, sans contrainte de clé étrangère entre les deux bases ; cette relation est gérée par l'application. En cas d'échec d'écriture dans MongoDB, l'erreur est journalisée, l'opération métier n'est pas bloquée et aucune erreur technique n'est exposée à l'utilisateur.
 
-Pour le tableau de bord de supervision ADMIN (`/admin`), `TicketEventRepository` expose deux lectures supplémentaires, en agrégation, sans logique métier : `countByType()` (pipeline `$group` par `type_evenement`, pour le nombre d'événements CREATION/PRISE_EN_CHARGE/CHANGEMENT_STATUT) et `findRecent($limit)` (lecture triée par `horodatage` décroissant, pour le fil d'activité récente). Ces indicateurs restent des indicateurs d'activité issus d'écritures non bloquantes — jamais une source de vérité sur l'état courant d'un ticket, qui reste calculé depuis MySQL (`TicketRepository::countByStatusGroups()`, agrégation `COUNT`/`SUM` par statut).
-
 ## 7. Sécurité et autorisation
 
 L'autorisation repose sur deux niveaux distincts. Le Guard (§5.5), appelé depuis les Controllers avant toute délégation au Service, tranche l'autorisation générale : l'utilisateur possède-t-il la permission d'effectuer ce type d'action, compte tenu de son rôle. Les Services (§5.2) tranchent la règle métier contextuelle : cet utilisateur précis peut-il agir sur cette ressource précise, compte tenu de son propriétaire, de son état ou de son assignation — par exemple, le créateur d'un ticket limité à ses propres tickets, quel que soit son rôle (TECHNICIAN et ADMIN disposant en complément d'un accès global, cf. `01_cadrage.md` §5), vérifié dans `CommentService` et `TicketService`.
 
 Le Guard s'appuie sur la matrice de permissions actée en `01_cadrage.md` §3 (USER, TECHNICIAN, ADMIN). Aucune donnée provenant du client (paramètres, formulaire, session) n'est considérée fiable sans validation serveur.
+
+L'accès à `/admin` (§11) est tranché exclusivement par le Guard sur le rôle ADMIN — aucune règle métier contextuelle supplémentaire, le tableau de bord ne portant sur aucune ressource individuelle.
 
 Détails d'implémentation (mécanisme de session, structure des contrôles, protections CSRF/XSS/injection) → `03_securite.md`.
 
@@ -177,3 +183,9 @@ L'environnement de développement est conteneurisé via Docker Compose, pour gar
 Deux fichiers distincts gèrent la configuration : `.env.example`, versionné, documente les variables attendues sans valeur sensible ; `.env`, non versionné, contient les valeurs réelles (identifiants MySQL, URI MongoDB) propres à chaque environnement.
 
 La cible de production (hébergement, usage ou non de Docker en production) n'est pas encore arrêtée. Détails et procédure complète → `05_deploiement.md`.
+
+## 11. Tableau de bord ADMIN (US10)
+
+`AdminController` reçoit la requête `GET /admin`, contrôle via le Guard que le compte connecté possède le rôle ADMIN, puis délègue à `AdminDashboardService`. Ce Service ne porte aucune règle métier de transition ou de propriété (§5.2) : il se limite à des requêtes d'agrégation en lecture seule, exécutées via les Repositories existants (`TicketRepository` pour la répartition par statut/priorité en MySQL, `TicketEventRepository` pour le comptage d'événements récents par type en MongoDB), puis assemble les résultats pour la vue `admin/dashboard.php`.
+
+Aucune écriture n'est effectuée depuis ce flux. Aucun nouveau Repository n'est créé : les agrégations réutilisent les Repositories de §4, ce qui respecte l'objectif de simplicité (§1).

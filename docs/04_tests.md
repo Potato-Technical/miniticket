@@ -2,7 +2,7 @@
 
 ## 1. Objectif des tests
 
-Valider, sur l'application réellement déployée (environnement Docker Compose), que le P0 fonctionnel répond aux exigences de sécurité et de règles métier fixées en `01_cadrage.md`, `02_architecture.md` et `03_securite.md`. Deux niveaux : un scénario d'intégration automatisé au niveau Service (`tests/integration/test_27_final.php`), et une passe manuelle HTTP consolidée couvrant RBAC, CSRF, tampering, XSS, robustesse du routage, logs et secrets.
+Valider, sur l'application réellement déployée (environnement Docker Compose), que le P0 fonctionnel répond aux exigences de sécurité et de règles métier fixées en `01_cadrage.md`, `02_architecture.md` et `03_securite.md`. Trois niveaux : un scénario d'intégration automatisé au niveau Service couvrant le cycle de vie des tickets (`tests/integration/test_27_final.php`), un scénario d'intégration automatisé dédié au tableau de bord ADMIN (`tests/integration/test_28_admin_dashboard.php`), et une passe manuelle HTTP consolidée couvrant RBAC, CSRF, tampering, XSS, robustesse du routage, logs et secrets.
 
 ## 2. Environnement de test
 
@@ -21,13 +21,25 @@ Valider, sur l'application réellement déployée (environnement Docker Compose)
 
 Scénario CLI unique, exécuté au niveau Service (sans passer par le serveur HTTP), couvrant en une seule chaîne : inscription de 3 comptes, création de ticket avec calcul de priorité, listage (mes tickets / liste globale), contrôle d'accès (`canView`), commentaires (valide, vide, XSS, sur ticket EN_COURS et FERME), prise en charge, transitions de statut jusqu'à FERME, refus de re-transition post-FERME, historique MongoDB (4 événements, ordre chronologique), lecture des commentaires avec jointure pseudo.
 
-### 3.2 Résultats
+### 3.2 Résultats — `test_27_final.php`
 
 - Précondition : base MySQL et MongoDB vides de données de test préalables au run, schéma exécuté, 6 catégories présentes.
 - Action : `docker compose exec web php tests/integration/test_27_final.php`.
 - Résultat attendu : 100 % des assertions passent, aucune régression sur le cycle de vie complet.
 - Résultat obtenu : 26/26 tests PASS. Ticket créé id 42.
 - Statut : PASS
+
+### 3.3 Script `test_28_admin_dashboard.php`
+
+Scénario CLI, exécuté au niveau Service, couvrant : accès de `AdminDashboardService` aux Repositories existants (aucune écriture), exactitude des compteurs par statut et par priorité restitués depuis MySQL sur un jeu de tickets connu, exactitude du comptage d'événements par type restitué depuis MongoDB (`ticket_events`) sur le même jeu, comportement sur jeu de données vide (compteurs à zéro, pas d'exception), absence de toute mutation MySQL ou MongoDB pendant l'exécution du scénario (vérifiée par comparaison des collections avant/après appel).
+
+### 3.4 Résultats — `test_28_admin_dashboard.php`
+
+- Précondition : jeu de tickets connu couvrant les 4 statuts et les 4 priorités, historique MongoDB correspondant déjà présent (issu de §3.1 ou d'un jeu dédié).
+- Action : `docker compose exec web php tests/integration/test_28_admin_dashboard.php`.
+- Résultat attendu : compteurs MySQL et MongoDB exacts, aucune écriture déclenchée, comportement correct sur jeu vide.
+- Résultat obtenu : à consigner ici après exécution (nombre d'assertions PASS/FAIL, ticket(s) ou jeu de données concernés).
+- Statut : à consigner après exécution — ne pas affirmer PASS sans résultat réellement obtenu.
 
 ## 4. Authentification
 
@@ -40,12 +52,13 @@ Scénario CLI unique, exécuté au niveau Service (sans passer par le serveur HT
 ## 5. Permissions — RBAC
 
 - Précondition : sessions actives pour USER, TECHNICIAN, ADMIN, et requête anonyme (sans cookie).
-- Action : `GET /tickets/all`, `POST /tickets/{id}/assign`, `POST /tickets/{id}/status` pour chaque rôle.
-- Résultat attendu : anonyme → 302 vers `/login` (échec d'authentification, distinct d'un refus de rôle) ; USER → 403 sur les trois routes ; TECHNICIAN → 200 sur `/tickets/all`, comportement métier (200/409 selon état) sur `assign`/`status` ; ADMIN → 200 sur `/tickets/all`, 403 sur `assign`/`status` (droit non accordé par `01_cadrage.md` §3).
+- Action : `GET /tickets/all`, `POST /tickets/{id}/assign`, `POST /tickets/{id}/status`, `GET /admin` pour chaque rôle.
+- Résultat attendu : anonyme → 302 vers `/login` (échec d'authentification, distinct d'un refus de rôle) ; USER → 403 sur les trois premières routes et sur `/admin` ; TECHNICIAN → 200 sur `/tickets/all`, comportement métier (200/409 selon état) sur `assign`/`status`, 403 sur `/admin` ; ADMIN → 200 sur `/tickets/all` et sur `/admin`, 403 sur `assign`/`status` (droit non accordé par `01_cadrage.md` §3).
 - Résultat obtenu :
   - `/tickets/all` : USER → 403, TECHNICIAN → 200, ADMIN → 200.
   - `assign`/`status` : USER → 403, ADMIN → 403, TECHNICIAN → atteint la logique métier (409 sur le ticket 42, déjà FERME).
-- Statut : PASS
+  - `/admin` : non couvert par la passe HTTP consignée ici — à exécuter et consigner (USER → 403, TECHNICIAN → 403, ADMIN → 200, anonyme → 302 attendus).
+- Statut : PASS pour les routes ticket ; `/admin` non couvert, résultat à consigner avant de clore le P0.
 
 ## 6. Propriété des ressources
 
@@ -139,11 +152,11 @@ Scénario CLI unique, exécuté au niveau Service (sans passer par le serveur HT
 ## 17. Vérification Git et secrets
 
 - Précondition : dépôt Git du projet.
-- Action : vérification des fichiers suivis (`.env`, `.log`, `vendor/`).
-- Résultat attendu : aucun de ces fichiers/dossiers suivi par Git.
+- Action : vérification des fichiers suivis (`.env`, `.log`, `vendor/`, mot de passe du seed de démonstration `05_deploiement.md`).
+- Résultat attendu : aucun de ces fichiers/dossiers suivi par Git ; `DEMO_PASSWORD` absent de tout fichier versionné.
 - Résultat obtenu : conforme — aucun `.env`, `.log` ou `vendor/` suivi.
 - Statut : PASS
 
 ## 18. Bilan final
 
-P0 validé sur l'ensemble des critères testés : intégration (26/26), authentification, RBAC, propriété des ressources, workflow, calcul de priorité, MongoDB, CSRF, tampering, XSS (titre et commentaire), robustesse du routage, validation des entrées, attributs de cookie de session, logs, hygiène Git. Un seul point non couvert : régénération de l'identifiant de session (`session_regenerate_id()`) après authentification, mesure présente dans `03_securite.md` mais non vérifiée par un test dédié.
+P0 validé sur l'ensemble des critères testés : intégration cycle de vie ticket (26/26), authentification, RBAC sur les routes ticket, propriété des ressources, workflow, calcul de priorité, MongoDB, CSRF, tampering, XSS (titre et commentaire), robustesse du routage, validation des entrées, attributs de cookie de session, logs, hygiène Git. Deux points non couverts à ce stade : régénération de l'identifiant de session (`session_regenerate_id()`) après authentification, mesure présente dans `03_securite.md` mais non vérifiée par un test dédié ; et RBAC HTTP sur `/admin` (§5) ainsi que le résultat d'exécution de `test_28_admin_dashboard.php` (§3.4), à consigner avant de considérer le tableau de bord ADMIN (US10) comme validé.

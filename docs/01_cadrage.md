@@ -6,15 +6,17 @@ Projet personnel de gestion de tickets informatiques (helpdesk), développé pou
 
 Domaine choisi pour son ancrage réel : expérience personnelle en support IT/helpdesk, donc vocabulaire métier (ticket, priorité, résolution, escalade) déjà maîtrisé — pas un domaine simulé.
 
-**Périmètre** : gestion de tickets d'incidents et de demandes en interne (tout compte peut signaler un problème le concernant, un TECHNICIAN traite). Exclu explicitement : SLA contractuels, notifications temps réel, pièces jointes, base de connaissance, reporting statistique.
+**Périmètre** : gestion de tickets d'incidents et de demandes en interne (tout compte peut signaler un problème le concernant, un TECHNICIAN traite). Exclu explicitement : SLA contractuels, notifications temps réel, pièces jointes, base de connaissance, reporting statistique détaillé au-delà du tableau de bord ADMIN (§4, US10).
 
 ## 2. Compétences du référentiel visées
 
-Bloc back-end sécurisé uniquement (pas de bloc front-end pour ce projet) — RNCP37674BC02 « Développer la partie back-end d'une application web ou web mobile sécurisée » :
+Bloc back-end sécurisé — RNCP37674BC02 « Développer la partie back-end d'une application web ou web mobile sécurisée » :
 - Mettre en place une base de données relationnelle
 - Développer des composants d'accès aux données SQL et NoSQL
 - Développer des composants métier côté serveur
 - Documenter le déploiement d'une application dynamique web ou web mobile
+
+Aucune compétence du bloc front-end n'est visée par ce projet. Bootstrap (`02_architecture.md` §2) sert uniquement à la mise en forme des vues existantes ; il ne constitue pas un travail de front-end évalué et ne justifie l'ajout d'aucune compétence supplémentaire au périmètre ci-dessus.
 
 ## 3. Rôles
 
@@ -28,13 +30,14 @@ Bloc back-end sécurisé uniquement (pas de bloc front-end pour ce projet) — R
 | Prendre en charge un ticket | – | ✔ | – |
 | Changer le statut d'un ticket | – | ✔ | – |
 | Rouvrir un ticket fermé (US12, bonus) | ✔ (créateur) | ✔ | – |
+| Consulter le tableau de bord (US10) | – | – | ✔ |
 | Gérer les utilisateurs (US10, bonus) | – | – | ✔ |
 
 RBAC porté par un champ `role` (ENUM) sur `users` — pas de table `roles` séparée.
 
 ## 4. User Stories
 
-**US1 — Création de compte** (Visiteur) — pseudo, email, mot de passe hashé via `password_hash()` ; tout compte créé par inscription publique reçoit obligatoirement le rôle USER, quelle que soit la valeur soumise par le formulaire. Les comptes TECHNICIAN et ADMIN sont créés manuellement en base pour le MVP (hors application, pas de mécanisme applicatif de provisioning dans le chemin critique).
+**US1 — Création de compte** (Visiteur) — pseudo, email, mot de passe hashé via `password_hash()` ; tout compte créé par inscription publique reçoit obligatoirement le rôle USER, quelle que soit la valeur soumise par le formulaire. Les comptes TECHNICIAN et ADMIN sont créés manuellement en base pour le MVP (hors application, pas de mécanisme applicatif de provisioning dans le chemin critique) — voir aussi le seed de démonstration, distinct de ce provisioning, en `05_deploiement.md`.
 
 **US2 — Connexion** (Visiteur → USER/TECHNICIAN/ADMIN) — authentification, session sécurisée, redirection selon rôle.
 
@@ -52,7 +55,7 @@ RBAC porté par un champ `role` (ENUM) sur `users` — pas de table `roles` sép
 
 **US9 — Historique des événements** (Système) — chaque événement métier significatif concernant le cycle de vie d'un ticket génère un événement MongoDB, relu pour l'affichage.
 
-**US10 — Admin utilisateurs et supervision tickets** (ADMIN, bonus) — gestion des utilisateurs ; accès en lecture à tous les tickets et possibilité de commenter, au même titre que TECHNICIAN. Hors chemin critique.
+**US10 — Tableau de bord ADMIN** (ADMIN) — route `/admin`, accessible au seul rôle ADMIN (Guard). Indicateurs en lecture seule : répartition des tickets par statut et par priorité (MySQL), volume d'événements récents par type (MongoDB `ticket_events`). Aucune action d'écriture depuis ce tableau de bord. La gestion des comptes utilisateurs reste hors chemin critique (bonus, non implémentée à ce stade) ; ADMIN conserve par ailleurs l'accès en lecture globale et le droit de commentaire déjà définis en §3 et §5.
 
 **US11 — Pré-remplissage assisté** (bonus) — suggestions front-end d'impact/urgence, recalcul serveur qui fait foi. N'ajoute aucune compétence par rapport à US8.
 
@@ -113,7 +116,7 @@ COMMENTS (id PK, ticket_id FK→TICKETS.id NOT NULL, user_id FK→USERS.id NOT N
 - Toutes les FK en `ON DELETE RESTRICT` — aucune suppression de user/catégorie/ticket prévue dans le MVP
 - `categories` : 6 lignes fixes insérées par seed SQL, pas de CRUD applicatif
 
-MPD = `database/miniticket_schema.sql` (types, contraintes, index, seed des catégories — rédigé à partir du MLD validé ci-dessus et validé par exécution sur une base MySQL vierge).
+MPD = `database/miniticket_schema.sql` (types, contraintes, index, seed des catégories — rédigé à partir du MLD validé ci-dessus, non encore exécuté).
 
 ### 6.2 Partie NoSQL (MongoDB)
 
@@ -129,7 +132,7 @@ ticket_events {
 }
 ```
 
-Pas de jointure avec MySQL au niveau base : la mise en relation se fait applicativement via `ticket_id`, relu et affiché en détail de ticket (US9).
+Pas de jointure avec MySQL au niveau base : la mise en relation se fait applicativement via `ticket_id`, relu et affiché en détail de ticket (US9) et agrégé pour le tableau de bord ADMIN (US10).
 
 ### 6.3 Justification de la répartition
 
@@ -144,184 +147,29 @@ Pas de jointure avec MySQL au niveau base : la mise en relation se fait applicat
 - 3 maquettes clés uniquement : création de ticket, liste tickets (vue technicien), détail + commentaires + historique
 - Personas écartés — les rôles (§3) suffisent
 
-Diagramme de cas d'utilisation, diagramme de classes et diagramme de séquence produits (`02_architecture.md` §9.1, §9.2 ; diagramme de cas d'utilisation en annexe). Les 3 maquettes clés (création de ticket, liste tickets vue technicien, détail + commentaires + historique) produites, avec déclinaisons desktop et mobile pour chacune.
+Diagramme de cas d'utilisation et 3 maquettes encore non produits (Step 08 de la roadmap toujours en attente). Diagramme de classes et diagramme de séquence produits (`02_architecture.md` §9.1, §9.2).
 
-## 8. Parcours de navigation (user flows)
+## 8. Definition of Done — P0 terminé
 
-Ces parcours décrivent les déplacements et actions de navigation réellement disponibles dans l'interface (menus, liens, boutons) à la suite de la passe UX/UI. Ils ne modifient aucune règle métier ni aucun cas d'utilisation (§4) — ils documentent uniquement comment ces cas d'utilisation sont désormais atteints depuis l'application. Rôles inchangés : VISITOR, USER, TECHNICIAN, ADMIN (§3).
-
-### 8.1 VISITOR
-
-```
-Accueil MiniTicket
-   │
-   ├──→ Créer un compte
-   │        ↓
-   │     Compte créé
-   │        ↓
-   │     Connexion
-   │
-   └──→ Connexion
-            ↓
-        Authentification
-            ↓
-        Redirection selon rôle
-```
-
-`/` est désormais une page d'accueil publique (landing page), accessible sans authentification, qui présente MiniTicket et propose les deux points d'entrée Créer un compte et Se connecter. Le visiteur peut aussi passer de Connexion à Créer un compte et inversement, via les liens présents sur chacune des deux pages.
-
-### 8.2 USER
-
-```
-Connexion
-   ↓
-Mes tickets
-   │
-   ├──→ Nouveau ticket
-   │       ↓
-   │   Création du ticket
-   │       ↓
-   │   Détail du ticket
-   │       │
-   │       ├──→ Consulter informations
-   │       ├──→ Consulter historique
-   │       └──→ Ajouter commentaire
-   │
-   └──→ Ouvrir un ticket existant
-           ↓
-       Détail du ticket
-           │
-           ├──→ Consulter informations
-           ├──→ Consulter historique
-           └──→ Ajouter commentaire
-```
-
-Depuis toute page authentifiée :
-
-```
-Déconnexion
-    ↓
-Connexion
-```
-
-### 8.3 TECHNICIAN
-
-```
-Connexion
-   ↓
-Tous les tickets
-   │
-   ├──→ Ouvrir un ticket
-   │       ↓
-   │   Détail du ticket
-   │       │
-   │       └──→ Ajouter commentaire
-   │
-   ├──→ Si ticket NOUVEAU : Prendre en charge (bouton sur la liste)
-   │               ↓
-   │            EN_COURS
-   │               ↓
-   │   Détail du ticket → Marquer résolu
-   │               ↓
-   │            RESOLU
-   │               ↓
-   │   Détail du ticket → Fermer
-   │               ↓
-   │            FERME
-   │
-   ├──→ Mes tickets
-   │       ↓
-   │   Ouvrir un de ses tickets
-   │
-   └──→ Nouveau ticket
-           ↓
-       Créer un ticket
-           ↓
-       Détail du ticket
-```
-
-Navigation disponible :
-
-```
-Tous les tickets ←→ Mes tickets
-        │
-        └────────→ Nouveau ticket
-```
-
-Note — « Prendre en charge » se déclenche depuis la liste **Tous les tickets** (bouton affiché pour chaque ticket au statut NOUVEAU), pas depuis le détail du ticket. Une fois le ticket EN_COURS ou RESOLU, les actions « Marquer résolu » et « Fermer » apparaissent dans le détail du ticket (panneau Actions technicien).
-
-Depuis toute page authentifiée :
-
-```
-Déconnexion
-    ↓
-Connexion
-```
-
-### 8.4 ADMIN
-
-Rappel (§3) : ADMIN consulte tous les tickets et peut commenter, mais ne peut ni prendre en charge un ticket ni changer son statut. Le tableau de bord `/admin` est un point d'entrée de supervision en lecture seule (indicateurs MySQL sur l'état des tickets, indicateurs d'activité MongoDB) — il n'ajoute aucune de ces deux permissions.
-
-```
-Connexion
-   ↓
-Administration (/admin)
-   │
-   ├──→ Tous les tickets
-   │       │
-   │       ├──→ Ouvrir un ticket
-   │       │       ↓
-   │       │   Détail du ticket
-   │       │       │
-   │       │       ├──→ Consulter informations
-   │       │       ├──→ Consulter historique
-   │       │       └──→ Ajouter commentaire
-   │       │
-   │       └──→ (aucune action de prise en charge ni de changement de statut)
-   │
-   ├──→ Mes tickets
-   │       ↓
-   │   Ouvrir ses tickets
-   │
-   └──→ Nouveau ticket
-           ↓
-       Créer un ticket
-           ↓
-       Détail du ticket
-```
-
-`/admin` devient le point d'entrée après connexion (redirection automatique) et la destination du logo MiniTicket dans la navbar pour ce rôle. Les liens « Tous les tickets », « Mes tickets » et « Nouveau ticket » restent accessibles à tout moment depuis la navbar, comme pour TECHNICIAN.
-
-Depuis toute page authentifiée :
-
-```
-Déconnexion
-    ↓
-Connexion
-```
-
-## 9. Definition of Done — P0 terminé
-
-- [x] Un USER peut créer un compte
-- [x] Il peut se connecter
-- [x] Il peut créer un ticket
-- [x] La priorité est calculée côté serveur
-- [x] Il ne voit que ses propres tickets
-- [x] Un TECHNICIAN et un ADMIN peuvent créer et consulter leurs propres tickets, en plus de leurs permissions respectives
-- [x] Un TECHNICIAN voit tous les tickets
-- [x] Il peut prendre en charge un ticket (assignation + passage auto à EN_COURS)
-- [x] Il peut faire progresser le statut (EN_COURS → RÉSOLU → FERMÉ)
-- [x] USER peut commenter ses tickets ; TECHNICIAN et ADMIN peuvent commenter tous les tickets autorisés
-- [x] Données métier en MySQL
-- [x] Événements en MongoDB
-- [x] Historique MongoDB relu et affiché
-- [x] Autorisations (rôle + propriété) contrôlées serveur
-- [x] CSRF traité et testé activement
-- [x] XSS traité et testé activement
-- [x] Injection SQL : protection structurelle par PDO + requêtes préparées systématiques (§6.1, `03_securite.md`) ; non vérifiée par un test d'injection actif
+- [ ] Un USER peut créer un compte
+- [ ] Il peut se connecter
+- [ ] Il peut créer un ticket
+- [ ] La priorité est calculée côté serveur
+- [ ] Il ne voit que ses propres tickets
+- [ ] Un TECHNICIAN et un ADMIN peuvent créer et consulter leurs propres tickets, en plus de leurs permissions respectives
+- [ ] Un TECHNICIAN voit tous les tickets
+- [ ] Il peut prendre en charge un ticket (assignation + passage auto à EN_COURS)
+- [ ] Il peut faire progresser le statut (EN_COURS → RÉSOLU → FERMÉ)
+- [ ] USER peut commenter ses tickets ; TECHNICIAN et ADMIN peuvent commenter tous les tickets autorisés
+- [ ] Données métier en MySQL
+- [ ] Événements en MongoDB
+- [ ] Historique MongoDB relu et affiché
+- [ ] ADMIN peut consulter le tableau de bord (US10) avec indicateurs MySQL et MongoDB à jour
+- [ ] Autorisations (rôle + propriété) contrôlées serveur
+- [ ] CSRF / XSS / injection SQL traités
 - [ ] Application fonctionnelle en production
-- [x] Installation locale documentée
-- [x] Diagrammes (cas d'utilisation, classes, séquence) et 3 maquettes produits (§7)
-- [x] Déploiement documenté
+- [ ] Installation locale documentée
+- [ ] Diagrammes (cas d'utilisation, classes, séquence) et 3 maquettes produits (§7)
+- [ ] Déploiement documenté
 
 *(Coche cette liste en continu dans Notion pendant le développement ; copie la version finale cochée ici à la fin, comme preuve pour le dossier.)*
