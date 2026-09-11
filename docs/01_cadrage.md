@@ -146,7 +146,154 @@ Pas de jointure avec MySQL au niveau base : la mise en relation se fait applicat
 
 Diagramme de cas d'utilisation, diagramme de classes et diagramme de séquence produits (`02_architecture.md` §9.1, §9.2 ; diagramme de cas d'utilisation en annexe). Les 3 maquettes clés (création de ticket, liste tickets vue technicien, détail + commentaires + historique) produites, avec déclinaisons desktop et mobile pour chacune.
 
-## 8. Definition of Done — P0 terminé
+## 8. Parcours de navigation (user flows)
+
+Ces parcours décrivent les déplacements et actions de navigation réellement disponibles dans l'interface (menus, liens, boutons) à la suite de la passe UX/UI. Ils ne modifient aucune règle métier ni aucun cas d'utilisation (§4) — ils documentent uniquement comment ces cas d'utilisation sont désormais atteints depuis l'application. Rôles inchangés : VISITOR, USER, TECHNICIAN, ADMIN (§3).
+
+### 8.1 VISITOR
+
+```
+Arrivée sur MiniTicket
+        ↓
+    Connexion
+    ├──────────────→ Créer un compte
+    │                       ↓
+    │                 Compte créé
+    │                       ↓
+    └───────────────── Connexion
+                            ↓
+                    Authentification
+                            ↓
+              Redirection selon le rôle
+```
+
+Le visiteur peut passer de Connexion à Créer un compte et inversement, via les liens présents sur chacune des deux pages.
+
+### 8.2 USER
+
+```
+Connexion
+   ↓
+Mes tickets
+   │
+   ├──→ Nouveau ticket
+   │       ↓
+   │   Création du ticket
+   │       ↓
+   │   Détail du ticket
+   │       │
+   │       ├──→ Consulter informations
+   │       ├──→ Consulter historique
+   │       └──→ Ajouter commentaire
+   │
+   └──→ Ouvrir un ticket existant
+           ↓
+       Détail du ticket
+           │
+           ├──→ Consulter informations
+           ├──→ Consulter historique
+           └──→ Ajouter commentaire
+```
+
+Depuis toute page authentifiée :
+
+```
+Déconnexion
+    ↓
+Connexion
+```
+
+### 8.3 TECHNICIAN
+
+```
+Connexion
+   ↓
+Tous les tickets
+   │
+   ├──→ Ouvrir un ticket
+   │       ↓
+   │   Détail du ticket
+   │       │
+   │       └──→ Ajouter commentaire
+   │
+   ├──→ Si ticket NOUVEAU : Prendre en charge (bouton sur la liste)
+   │               ↓
+   │            EN_COURS
+   │               ↓
+   │   Détail du ticket → Marquer résolu
+   │               ↓
+   │            RESOLU
+   │               ↓
+   │   Détail du ticket → Fermer
+   │               ↓
+   │            FERME
+   │
+   ├──→ Mes tickets
+   │       ↓
+   │   Ouvrir un de ses tickets
+   │
+   └──→ Nouveau ticket
+           ↓
+       Créer un ticket
+           ↓
+       Détail du ticket
+```
+
+Navigation disponible :
+
+```
+Tous les tickets ←→ Mes tickets
+        │
+        └────────→ Nouveau ticket
+```
+
+Note — « Prendre en charge » se déclenche depuis la liste **Tous les tickets** (bouton affiché pour chaque ticket au statut NOUVEAU), pas depuis le détail du ticket. Une fois le ticket EN_COURS ou RESOLU, les actions « Marquer résolu » et « Fermer » apparaissent dans le détail du ticket (panneau Actions technicien).
+
+Depuis toute page authentifiée :
+
+```
+Déconnexion
+    ↓
+Connexion
+```
+
+### 8.4 ADMIN
+
+Rappel (§3) : ADMIN consulte tous les tickets et peut commenter, mais ne peut ni prendre en charge un ticket ni changer son statut.
+
+```
+Connexion
+   ↓
+Tous les tickets
+   │
+   ├──→ Ouvrir un ticket
+   │       ↓
+   │   Détail du ticket
+   │       │
+   │       ├──→ Consulter informations
+   │       ├──→ Consulter historique
+   │       └──→ Ajouter commentaire
+   │
+   ├──→ Mes tickets
+   │       ↓
+   │   Ouvrir ses tickets
+   │
+   └──→ Nouveau ticket
+           ↓
+       Créer un ticket
+           ↓
+       Détail du ticket
+```
+
+Depuis toute page authentifiée :
+
+```
+Déconnexion
+    ↓
+Connexion
+```
+
+## 9. Definition of Done — P0 terminé
 
 - [x] Un USER peut créer un compte
 - [x] Il peut se connecter
