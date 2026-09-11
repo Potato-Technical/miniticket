@@ -113,7 +113,7 @@ COMMENTS (id PK, ticket_id FK→TICKETS.id NOT NULL, user_id FK→USERS.id NOT N
 - Toutes les FK en `ON DELETE RESTRICT` — aucune suppression de user/catégorie/ticket prévue dans le MVP
 - `categories` : 6 lignes fixes insérées par seed SQL, pas de CRUD applicatif
 
-MPD = `database/miniticket_schema.sql` (types, contraintes, index, seed des catégories — rédigé à partir du MLD validé ci-dessus, non encore exécuté).
+MPD = `database/miniticket_schema.sql` (types, contraintes, index, seed des catégories — rédigé à partir du MLD validé ci-dessus et validé par exécution sur une base MySQL vierge).
 
 ### 6.2 Partie NoSQL (MongoDB)
 
@@ -144,28 +144,30 @@ Pas de jointure avec MySQL au niveau base : la mise en relation se fait applicat
 - 3 maquettes clés uniquement : création de ticket, liste tickets (vue technicien), détail + commentaires + historique
 - Personas écartés — les rôles (§3) suffisent
 
-Diagramme de cas d'utilisation et 3 maquettes encore non produits (Step 08 de la roadmap toujours en attente). Diagramme de classes et diagramme de séquence produits (`02_architecture.md` §9.1, §9.2).
+Diagramme de cas d'utilisation, diagramme de classes et diagramme de séquence produits (`02_architecture.md` §9.1, §9.2 ; diagramme de cas d'utilisation en annexe). Les 3 maquettes clés (création de ticket, liste tickets vue technicien, détail + commentaires + historique) produites, avec déclinaisons desktop et mobile pour chacune.
 
 ## 8. Definition of Done — P0 terminé
 
-- [ ] Un USER peut créer un compte
-- [ ] Il peut se connecter
-- [ ] Il peut créer un ticket
-- [ ] La priorité est calculée côté serveur
-- [ ] Il ne voit que ses propres tickets
-- [ ] Un TECHNICIAN et un ADMIN peuvent créer et consulter leurs propres tickets, en plus de leurs permissions respectives
-- [ ] Un TECHNICIAN voit tous les tickets
-- [ ] Il peut prendre en charge un ticket (assignation + passage auto à EN_COURS)
-- [ ] Il peut faire progresser le statut (EN_COURS → RÉSOLU → FERMÉ)
-- [ ] USER peut commenter ses tickets ; TECHNICIAN et ADMIN peuvent commenter tous les tickets autorisés
-- [ ] Données métier en MySQL
-- [ ] Événements en MongoDB
-- [ ] Historique MongoDB relu et affiché
-- [ ] Autorisations (rôle + propriété) contrôlées serveur
-- [ ] CSRF / XSS / injection SQL traités
+- [x] Un USER peut créer un compte
+- [x] Il peut se connecter
+- [x] Il peut créer un ticket
+- [x] La priorité est calculée côté serveur
+- [x] Il ne voit que ses propres tickets
+- [x] Un TECHNICIAN et un ADMIN peuvent créer et consulter leurs propres tickets, en plus de leurs permissions respectives
+- [x] Un TECHNICIAN voit tous les tickets
+- [x] Il peut prendre en charge un ticket (assignation + passage auto à EN_COURS)
+- [x] Il peut faire progresser le statut (EN_COURS → RÉSOLU → FERMÉ)
+- [x] USER peut commenter ses tickets ; TECHNICIAN et ADMIN peuvent commenter tous les tickets autorisés
+- [x] Données métier en MySQL
+- [x] Événements en MongoDB
+- [x] Historique MongoDB relu et affiché
+- [x] Autorisations (rôle + propriété) contrôlées serveur
+- [x] CSRF traité et testé activement
+- [x] XSS traité et testé activement
+- [x] Injection SQL : protection structurelle par PDO + requêtes préparées systématiques (§6.1, `03_securite.md`) ; non vérifiée par un test d'injection actif
 - [ ] Application fonctionnelle en production
-- [ ] Installation locale documentée
-- [ ] Diagrammes (cas d'utilisation, classes, séquence) et 3 maquettes produits (§7)
-- [ ] Déploiement documenté
+- [x] Installation locale documentée
+- [x] Diagrammes (cas d'utilisation, classes, séquence) et 3 maquettes produits (§7)
+- [x] Déploiement documenté
 
 *(Coche cette liste en continu dans Notion pendant le développement ; copie la version finale cochée ici à la fin, comme preuve pour le dossier.)*
