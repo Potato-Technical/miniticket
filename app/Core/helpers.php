@@ -26,3 +26,51 @@ function csrf_field(): string
 
     return '<input type="hidden" name="csrf_token" value="' . e($token) . '">';
 }
+
+/**
+ * Libellé humain d'un statut de ticket, pour affichage uniquement.
+ * La valeur interne (colonne statut) n'est jamais modifiée.
+ */
+function ticket_status_label(string $statut): string
+{
+    return match ($statut) {
+        'NOUVEAU' => 'Nouveau',
+        'EN_COURS' => 'En cours',
+        'RESOLU' => 'Résolu',
+        'FERME' => 'Fermé',
+        default => $statut,
+    };
+}
+
+/**
+ * Libellé humain d'un type d'événement d'historique, pour affichage uniquement.
+ */
+function ticket_event_label(string $type): string
+{
+    return match ($type) {
+        'CREATION' => 'Création du ticket',
+        'PRISE_EN_CHARGE' => 'Prise en charge',
+        'CHANGEMENT_STATUT' => 'Changement de statut',
+        default => $type,
+    };
+}
+
+/**
+ * Classe CSS du badge de statut (voir public/assets/css/app.css).
+ */
+function ticket_status_badge_class(string $statut): string
+{
+    $known = ['NOUVEAU', 'EN_COURS', 'RESOLU', 'FERME'];
+
+    return 'badge-pill badge-status-' . (in_array($statut, $known, true) ? $statut : 'NOUVEAU');
+}
+
+/**
+ * Classe CSS du badge de priorité (voir public/assets/css/app.css).
+ */
+function ticket_priority_badge_class(string $priorite): string
+{
+    $known = ['P1', 'P2', 'P3', 'P4'];
+
+    return 'badge-pill badge-priority-' . (in_array($priorite, $known, true) ? $priorite : 'P4');
+}

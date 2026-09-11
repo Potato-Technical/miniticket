@@ -68,3 +68,7 @@
         Créer mon compte
     </button>
 </form>
+
+<p class="mt-3">
+    Déjà un compte ? <a href="/login">Se connecter</a>
+</p>

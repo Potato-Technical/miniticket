@@ -38,3 +38,7 @@
         Se connecter
     </button>
 </form>
+
+<p class="mt-3">
+    Pas encore de compte ? <a href="/register">Créer un compte</a>
+</p>

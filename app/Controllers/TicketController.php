@@ -49,6 +49,7 @@ class TicketController
         View::render('tickets/my', [
             'tickets' => $tickets,
             'categoryLabels' => $categoryLabels,
+            'currentRole' => $guard->currentRole(),
         ]);
     }
 
@@ -81,7 +82,8 @@ class TicketController
      */
     public function showCreate(): void
     {
-        (new Guard())->requireAuth();
+        $guard = new Guard();
+        $guard->requireAuth();
 
         $categories = (new CategoryRepository(
             (new Database())->getConnection()
@@ -91,6 +93,7 @@ class TicketController
             'categories' => $categories,
             'errors' => [],
             'old' => [],
+            'currentRole' => $guard->currentRole(),
         ]);
     }
 
@@ -139,6 +142,7 @@ class TicketController
                     'impact' => $impact,
                     'urgence' => $urgence,
                 ],
+                'currentRole' => $guard->currentRole(),
             ]);
 
             return;

@@ -1,0 +1,130 @@
+/*
+ * MiniTicket — feuille de style d'appoint.
+ * Reprend l'esprit des maquettes (docs/export) : sobre, fond clair, texte sombre,
+ * bordures légères, primary réservé aux actions principales.
+ */
+
+:root {
+    --mt-bg: #faf9f7;
+    --mt-border: #e5e3df;
+    --mt-muted: #6c757d;
+}
+
+body {
+    background-color: var(--mt-bg);
+    color: #212529;
+}
+
+/* Cartes / conteneurs de section */
+
+.section-card {
+    background: #fff;
+    border: 1px solid var(--mt-border);
+    border-radius: .5rem;
+}
+
+.card {
+    border-color: var(--mt-border);
+}
+
+/* Tableaux */
+
+.table {
+    background-color: #fff;
+}
+
+.table thead th {
+    text-transform: uppercase;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    font-weight: 600;
+    color: var(--mt-muted);
+    border-bottom-width: 1px;
+}
+
+/* Cartes ticket (listes en mobile) */
+
+.ticket-card {
+    display: block;
+    border: 1px solid var(--mt-border);
+    border-radius: .5rem;
+    background: #fff;
+    transition: border-color .15s ease-in-out;
+}
+
+.ticket-card:hover {
+    border-color: #adb5bd;
+}
+
+/* Onglets de liste (Tous les tickets / Mes tickets) */
+
+.ticket-list-tabs .nav-link {
+    color: #495057;
+    border-radius: .375rem;
+    padding: .5rem 1rem;
+}
+
+.ticket-list-tabs .nav-link.active {
+    background-color: #212529;
+    color: #fff;
+}
+
+/* Badges statut / priorité */
+
+.badge-pill {
+    display: inline-block;
+    padding: .3em .7em;
+    border-radius: 1rem;
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.badge-status-NOUVEAU {
+    color: #212529;
+    background: #fff;
+    border: 1px solid #212529;
+}
+
+.badge-status-EN_COURS {
+    color: #8a5d00;
+    background: #fff8e6;
+    border: 1px solid #ffda6a;
+}
+
+.badge-status-RESOLU {
+    color: #146c43;
+    background: #eaf6ef;
+    border: 1px solid #a3cfbb;
+}
+
+.badge-status-FERME {
+    color: var(--mt-muted);
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.badge-priority-P1 {
+    color: #fff;
+    background: #212529;
+    border: 1px solid #212529;
+}
+
+.badge-priority-P2 {
+    color: #212529;
+    background: #fff;
+    border: 1px solid #212529;
+}
+
+.badge-priority-P3 {
+    color: #495057;
+    background: #fff;
+    border: 1px solid #ced4da;
+}
+
+.badge-priority-P4 {
+    color: #868e96;
+    background: #fff;
+    border: 1px solid #e9ecef;
+}
