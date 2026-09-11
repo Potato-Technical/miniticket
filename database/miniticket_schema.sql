@@ -2,6 +2,12 @@
 -- Construit à partir du MLD validé (01_cadrage.md §6.1)
 -- Toutes les FK en ON DELETE RESTRICT — aucune suppression de user/catégorie/ticket prévue dans le MVP
 
+-- Fixe le charset de la session d'import à utf8mb4, quel que soit le charset par
+-- défaut du client mysql appelant (le client CLI négocie latin1 par défaut sur
+-- de nombreuses installations, ce qui corromprait les libellés accentués du seed
+-- ci-dessous par double encodage UTF-8 lors de l'import).
+SET NAMES utf8mb4;
+
 CREATE TABLE users (
     id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     pseudo         VARCHAR(50)  NOT NULL UNIQUE,
