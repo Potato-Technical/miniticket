@@ -84,6 +84,23 @@ L'inscription publique (US1) ne crée que des comptes USER. Pour le MVP, les com
 
 Cette procédure n'est pas versionnée sous forme de script SQL exécutable (cohérent avec "hors de tout mécanisme applicatif" ci-dessus) — seule la méthode est documentée, pas les identifiants ni les hashs réels, le repository étant public.
 
+## Jeu de données de démonstration (seed local)
+
+`database/seed_demo.php` automatise, pour l'environnement local uniquement, la création de 3 comptes de démonstration (USER, TECHNICIAN, ADMIN) et de quelques tickets représentatifs (statuts et priorités variés), en suivant exactement la même procédure de provisioning que ci-dessus (inscription via `UserService`, puis élévation de rôle par requête SQL directe pour TECHNICIAN/ADMIN) et en passant systématiquement par `TicketService` pour les tickets, afin que MySQL et MongoDB restent cohérents entre eux.
+
+**Avant de lancer le seed**, définir `DEMO_PASSWORD` dans `.env` (le dépôt étant public, ce mot de passe n'est jamais versionné — `.env.example` ne documente que le nom de la variable, sans valeur réelle) :
+```
+DEMO_PASSWORD=ChangeMe1234!
+```
+Sans cette variable (absente ou vide), le seed s'arrête proprement avec un message d'erreur explicite, sans créer aucun compte.
+
+Exécution :
+```
+docker compose exec web php database/seed_demo.php
+```
+
+Rejouable sans créer de doublons (email pour les comptes, titre exact pour les tickets). Si un compte de démonstration existe déjà avec un rôle différent de celui attendu, son rôle est corrigé. Comptes créés : `user@miniticket.local`, `technician@miniticket.local`, `admin@miniticket.local`, mot de passe commun = la valeur de `DEMO_PASSWORD` — **strictement local, jamais un identifiant de production, jamais à utiliser en dehors de cet environnement de développement.** Le seed n'affiche jamais ce mot de passe dans sa sortie.
+
 ## Déploiement
 
 **Développement (seul environnement mis en place et validé à ce jour)** : `docker compose up -d --build` démarre les services applicatif (Apache + PHP, construit depuis le `Dockerfile` local), MySQL et MongoDB. Application accessible sur `http://localhost:8081`. Reproductible d'une machine à l'autre, à condition de disposer de Docker et Docker Compose.

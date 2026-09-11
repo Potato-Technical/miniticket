@@ -6,7 +6,11 @@ $navIsStaff = in_array($navRole, ['TECHNICIAN', 'ADMIN'], true);
 
 $navLogoHref = '/';
 if ($navAuthenticated) {
-    $navLogoHref = $navRole === 'USER' ? '/tickets' : '/tickets/all';
+    $navLogoHref = match ($navRole) {
+        'USER' => '/tickets',
+        'ADMIN' => '/admin',
+        default => '/tickets/all',
+    };
 }
 ?>
 <!DOCTYPE html>
@@ -48,6 +52,11 @@ if ($navAuthenticated) {
                             <a class="btn btn-primary btn-sm" href="/register">Créer un compte</a>
                         </li>
                     <?php else: ?>
+                        <?php if ($navRole === 'ADMIN'): ?>
+                            <li class="nav-item my-1 my-lg-0">
+                                <a class="nav-link" href="/admin">Administration</a>
+                            </li>
+                        <?php endif; ?>
                         <?php if ($navIsStaff): ?>
                             <li class="nav-item my-1 my-lg-0">
                                 <a class="nav-link" href="/tickets/all">Tous les tickets</a>

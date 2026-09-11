@@ -260,20 +260,24 @@ Connexion
 
 ### 8.4 ADMIN
 
-Rappel (§3) : ADMIN consulte tous les tickets et peut commenter, mais ne peut ni prendre en charge un ticket ni changer son statut.
+Rappel (§3) : ADMIN consulte tous les tickets et peut commenter, mais ne peut ni prendre en charge un ticket ni changer son statut. Le tableau de bord `/admin` est un point d'entrée de supervision en lecture seule (indicateurs MySQL sur l'état des tickets, indicateurs d'activité MongoDB) — il n'ajoute aucune de ces deux permissions.
 
 ```
 Connexion
    ↓
-Tous les tickets
+Administration (/admin)
    │
-   ├──→ Ouvrir un ticket
-   │       ↓
-   │   Détail du ticket
+   ├──→ Tous les tickets
    │       │
-   │       ├──→ Consulter informations
-   │       ├──→ Consulter historique
-   │       └──→ Ajouter commentaire
+   │       ├──→ Ouvrir un ticket
+   │       │       ↓
+   │       │   Détail du ticket
+   │       │       │
+   │       │       ├──→ Consulter informations
+   │       │       ├──→ Consulter historique
+   │       │       └──→ Ajouter commentaire
+   │       │
+   │       └──→ (aucune action de prise en charge ni de changement de statut)
    │
    ├──→ Mes tickets
    │       ↓
@@ -285,6 +289,8 @@ Tous les tickets
            ↓
        Détail du ticket
 ```
+
+`/admin` devient le point d'entrée après connexion (redirection automatique) et la destination du logo MiniTicket dans la navbar pour ce rôle. Les liens « Tous les tickets », « Mes tickets » et « Nouveau ticket » restent accessibles à tout moment depuis la navbar, comme pour TECHNICIAN.
 
 Depuis toute page authentifiée :
 

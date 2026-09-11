@@ -140,4 +140,32 @@ class TicketRepository
 
         return $stmt->rowCount() === 1;
     }
+
+    /**
+     * Comptages agrégés par statut, pour le tableau de bord ADMIN (supervision).
+     * Une seule requête d'agrégation SQL — aucun ticket n'est chargé en PHP pour être compté.
+     * MySQL reste la source de vérité sur l'état actuel des tickets.
+     *
+     * @return array{total: int, nouveau: int, en_cours: int, termines: int}
+     */
+    public function countByStatusGroups(): array
+    {
+        $stmt = $this->pdo->query(
+            "SELECT
+                COUNT(*) AS total,
+                SUM(statut = 'NOUVEAU') AS nouveau,
+                SUM(statut = 'EN_COURS') AS en_cours,
+                SUM(statut IN ('RESOLU', 'FERME')) AS termines
+             FROM tickets"
+        );
+
+        $row = $stmt->fetch();
+
+        return [
+            'total' => (int) $row['total'],
+            'nouveau' => (int) $row['nouveau'],
+            'en_cours' => (int) $row['en_cours'],
+            'termines' => (int) $row['termines'],
+        ];
+    }
 }

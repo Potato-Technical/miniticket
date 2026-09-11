@@ -120,7 +120,8 @@ class UserController
 
         $destination = match ($user['role']) {
             'USER' => '/tickets',
-            'TECHNICIAN', 'ADMIN' => '/tickets/all',
+            'TECHNICIAN' => '/tickets/all',
+            'ADMIN' => '/admin',
             default => throw new RuntimeException(
                 'Rôle utilisateur invalide.'
             ),

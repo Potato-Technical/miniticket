@@ -270,4 +270,37 @@ class TicketService
 
         return true;
     }
+
+    /**
+     * Statistiques de supervision pour le tableau de bord ADMIN. MySQL reste la source
+     * de vérité pour l'état actuel des tickets (`tickets`) ; MongoDB (`events`, `recent`)
+     * ne reflète que l'activité journalisée (écritures non bloquantes, 01_cadrage.md §5)
+     * — jamais utilisé pour déterminer le statut courant d'un ticket.
+     *
+     * @return array{
+     *     tickets: array{total: int, nouveau: int, en_cours: int, termines: int},
+     *     events: array<string, int>,
+     *     recent: array<int, array<string, mixed>>
+     * }
+     */
+    public function dashboardStats(int $recentLimit = 10): array
+    {
+        $recent = [];
+
+        foreach ($this->events->findRecent($recentLimit) as $event) {
+            $horodatage = $event['horodatage'] ?? null;
+
+            $event['horodatage_formate'] = $horodatage instanceof UTCDateTime
+                ? $horodatage->toDateTime()->format('d/m/Y H:i:s')
+                : '';
+
+            $recent[] = $event;
+        }
+
+        return [
+            'tickets' => $this->tickets->countByStatusGroups(),
+            'events' => $this->events->countByType(),
+            'recent' => $recent,
+        ];
+    }
 }

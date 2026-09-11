@@ -74,3 +74,28 @@ function ticket_priority_badge_class(string $priorite): string
 
     return 'badge-pill badge-priority-' . (in_array($priorite, $known, true) ? $priorite : 'P4');
 }
+
+/**
+ * Résumé lisible d'un événement d'historique MongoDB, pour le fil d'activité du
+ * tableau de bord ADMIN. Pure mise en forme d'affichage, aucune donnée modifiée.
+ *
+ * @param array<string, mixed> $event
+ */
+function admin_event_summary(array $event): string
+{
+    $type = (string) ($event['type_evenement'] ?? '');
+
+    if (
+        $type === 'CHANGEMENT_STATUT'
+        && isset($event['donnees']['ancien_statut'], $event['donnees']['nouveau_statut'])
+    ) {
+        return sprintf(
+            '%s : %s → %s',
+            ticket_event_label($type),
+            ticket_status_label($event['donnees']['ancien_statut']),
+            ticket_status_label($event['donnees']['nouveau_statut'])
+        );
+    }
+
+    return ticket_event_label($type);
+}
