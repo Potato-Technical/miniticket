@@ -153,21 +153,22 @@ Ces parcours décrivent les déplacements et actions de navigation réellement d
 ### 8.1 VISITOR
 
 ```
-Arrivée sur MiniTicket
-        ↓
-    Connexion
-    ├──────────────→ Créer un compte
-    │                       ↓
-    │                 Compte créé
-    │                       ↓
-    └───────────────── Connexion
-                            ↓
-                    Authentification
-                            ↓
-              Redirection selon le rôle
+Accueil MiniTicket
+   │
+   ├──→ Créer un compte
+   │        ↓
+   │     Compte créé
+   │        ↓
+   │     Connexion
+   │
+   └──→ Connexion
+            ↓
+        Authentification
+            ↓
+        Redirection selon rôle
 ```
 
-Le visiteur peut passer de Connexion à Créer un compte et inversement, via les liens présents sur chacune des deux pages.
+`/` est désormais une page d'accueil publique (landing page), accessible sans authentification, qui présente MiniTicket et propose les deux points d'entrée Créer un compte et Se connecter. Le visiteur peut aussi passer de Connexion à Créer un compte et inversement, via les liens présents sur chacune des deux pages.
 
 ### 8.2 USER
 

@@ -5,10 +5,11 @@ declare(strict_types=1);
 use App\Controllers\UserController;
 use App\Controllers\TicketController;
 use App\Controllers\CommentController;
+use App\Core\View;
 
 /** @var App\Core\Router $router */
 
-$router->get('/', fn() => header('Location: /login'));
+$router->get('/', fn() => View::render('home'));
 
 $router->get('/register', [UserController::class, 'showRegister']);
 $router->post('/register', [UserController::class, 'register']);

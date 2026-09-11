@@ -4,7 +4,7 @@ $navAuthenticated = $navGuard->isAuthenticated();
 $navRole = $navGuard->currentRole();
 $navIsStaff = in_array($navRole, ['TECHNICIAN', 'ADMIN'], true);
 
-$navLogoHref = '/login';
+$navLogoHref = '/';
 if ($navAuthenticated) {
     $navLogoHref = $navRole === 'USER' ? '/tickets' : '/tickets/all';
 }
@@ -38,6 +38,9 @@ if ($navAuthenticated) {
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
                     <?php if (!$navAuthenticated): ?>
+                        <li class="nav-item my-1 my-lg-0">
+                            <a class="nav-link" href="/">Accueil</a>
+                        </li>
                         <li class="nav-item my-1 my-lg-0">
                             <a class="nav-link" href="/login">Connexion</a>
                         </li>
